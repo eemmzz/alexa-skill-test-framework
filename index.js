@@ -45,7 +45,7 @@ CallbackContext.prototype.assert = function (data) {
 CallbackContext.prototype._questionMarkCheck = function (response) {
 	'use strict';
 	var actualSay = response.response.outputSpeech ? response.response.outputSpeech.ssml : undefined;
-	
+
 	var hasQuestionMark = false;
 	for (var i = 0; actualSay && i < actualSay.length; i++) {
 		var c = actualSay[i];
@@ -69,15 +69,15 @@ CallbackContext.prototype._questionMarkCheck = function (response) {
 };
 
 module.exports = {
-	
+
 	locale: "en-US",
 	version: "1.0",
-	
+
 	// DynamoDB Mock
 	dynamoDBTable: null,
 	dynamoDBGetMock: null,
 	dynamoDBPutMock: null,
-	
+
 	//TODO: allow these to be enabled or disabled on a per-request basis
 	extraFeatures: {
 		/**
@@ -86,7 +86,7 @@ module.exports = {
 		 */
 		questionMarkCheck: true,
 	},
-	
+
 	/**
 	 * Initializes necessary values before using the test framework.
 	 * @param {object} index The object containing your skill's 'handler' method.
@@ -101,7 +101,7 @@ module.exports = {
 		this.userId = userId;
 		this.deviceId = deviceId || 'amzn1.ask.device.VOID';
 	},
-	
+
 	/**
 	 * Initializes i18n.
 	 * @param {object} resources The 'resources' object to give to i18n.
@@ -117,7 +117,7 @@ module.exports = {
 			resources: resources
 		});
 	},
-	
+
 	/**
 	 * Changes the locale used by i18n and to generate requests.
 	 * @param {string} locale E.g. "en-US"
@@ -132,7 +132,7 @@ module.exports = {
 			this.i18n.changeLanguage(this.locale);
 		}
 	},
-	
+
 	/**
 	 * Activates mocking of DynamoDB backed attributes
 	 * @param {string} tableName name of the DynamoDB Table
@@ -143,7 +143,7 @@ module.exports = {
 			throw "'tableName' argument must be provided.";
 		}
 		this.dynamoDBTable = tableName;
-		
+
 		let self = this;
 		AWSMOCK.mock('DynamoDB.DocumentClient', 'get', (params, callback) => {
 			// Do not inline; resolution has to take place on call
@@ -154,7 +154,7 @@ module.exports = {
 			self.dynamoDBPutMock(params, callback);
 		});
 	},
-	
+
 	/**
 	 * Reset the mock on the DynamoDB
 	 */
@@ -162,7 +162,7 @@ module.exports = {
 		'use strict';
 		AWSMOCK.restore('DynamoDB.DocumentClient');
 	},
-	
+
 	/**
 	 * Enables or disables an optional testing feature.
 	 * @param {string} key The key of the feature to enable.
@@ -175,7 +175,7 @@ module.exports = {
 		}
 		this.extraFeatures[key] = !!enabled;
 	},
-	
+
 	/**
 	 * Generates a launch request object.
 	 * @param {string} locale Optional locale to use. If not specified, uses the locale specified by `setLocale`.
@@ -194,7 +194,7 @@ module.exports = {
 			}
 		};
 	},
-	
+
 	/**
 	 * Generates an intent request object.
 	 * @param {string} intentName The name of the intent to call.
@@ -203,14 +203,6 @@ module.exports = {
 	 */
 	getIntentRequest: function (intentName, slots, locale) {
 		'use strict';
-		if (!slots) {
-			slots = {};
-		}
-		else {
-			for (var key in slots) {
-				slots[key] = {name: key, value: slots[key]};
-			}
-		}
 		return {
 			"version": this.version,
 			"session": this._getSessionData(),
@@ -220,11 +212,11 @@ module.exports = {
 				"requestId": "EdwRequestId." + uuid.v4(),
 				"timestamp": new Date().toISOString(),
 				"locale": locale || this.locale,
-				"intent": {"name": intentName, "slots": slots}
-			},
+				"intent": {"name": intentName, "slots": slots || {}}
+			}
 		};
 	},
-	
+
 	/**
 	 * Generates a sesson ended request object.
 	 * @param {string} reason The reason the session was ended.
@@ -247,7 +239,7 @@ module.exports = {
 			}
 		};
 	},
-	
+
 	/**
 	 * Adds an AudioPlayer context to the given request.
 	 * @param {object} request The intent request to modify.
@@ -261,7 +253,7 @@ module.exports = {
 		if (!request) {
 			throw 'request must be specified to add entity resolution';
 		}
-		
+
 		if (token) {
 			request.context.AudioPlayer.token = token;
 		}
@@ -273,7 +265,7 @@ module.exports = {
 		}
 		return request;
 	},
-	
+
 	/**
 	 * Adds an entity resolution to the given request.
 	 * @param {object} request The intent request to modify.
@@ -294,11 +286,11 @@ module.exports = {
 		if (!value) {
 			throw 'value must be specified to add entity resolution';
 		}
-		
+
 		if (!request.request.intent.slots[slotName]) {
 			request.request.intent.slots[slotName] = {name: slotName, value: value};
 		}
-		
+
 		if (!request.request.intent.slots[slotName].resolutions) {
 			request.request.intent.slots[slotName].resolutions = {
 				"resolutionsPerAuthority": []
@@ -318,10 +310,10 @@ module.exports = {
 				}
 			]
 		});
-		
+
 		return request;
 	},
-	
+
 	/**
 	 * Adds an entity resolution with code ER_SUCCESS_NO_MATCH to the given request.
 	 * @param {object} request The intent request to modify.
@@ -341,11 +333,11 @@ module.exports = {
 		if (!value) {
 			throw 'value must be specified to add entity resolution';
 		}
-		
+
 		if (!request.request.intent.slots[slotName]) {
 			request.request.intent.slots[slotName] = {name: slotName, value: value};
 		}
-		
+
 		if (!request.request.intent.slots[slotName].resolutions) {
 			request.request.intent.slots[slotName].resolutions = {
 				"resolutionsPerAuthority": []
@@ -357,10 +349,10 @@ module.exports = {
 				"code": "ER_SUCCESS_NO_MATCH"
 			}
 		});
-		
+
 		return request;
 	},
-	
+
 	/**
 	 * Tests the responses of a sequence of requests to the skill.
 	 * @param {object[]} sequence An array of requests to test. Each element can have these properties:
@@ -395,13 +387,13 @@ module.exports = {
 		if (!sequence) {
 			throw "'sequence' argument must be provided.";
 		}
-		
+
 		var randomSessionId = `SessionId.${uuid.v4()}`;
-		
+
 		var index = this.index;
 		var locale = this.locale;
 		var self = this;
-		
+
 		it(testDescription || "returns the correct responses", function (done) {
 			var run = function (handler, sequenceIndex, attributes) {
 				if (sequenceIndex >= sequence.length) {
@@ -411,7 +403,7 @@ module.exports = {
 				else {
 					var ctx = awsContext();
 					var currentItem = sequence[sequenceIndex];
-					
+
 					var request = currentItem.request;
 					request.session.new = sequenceIndex === 0;
 					if (attributes) {
@@ -426,15 +418,15 @@ module.exports = {
 						}
 						return ctx.succeed(result);
 					};
-					
+
 					var requestType = request.request.type;
 					if (requestType === "IntentRequest") {
 						requestType = request.request.intent.name;
 					}
 					var context = new CallbackContext(self, sequenceIndex, locale, requestType);
-					
+
 					if (self.dynamoDBTable) {
-						
+
 						self.dynamoDBGetMock = (params, callback) => {
 							self._assertStringEqual(context, "TableName", params.TableName, self.dynamoDBTable);
 							self._assertStringEqual(context, "UserId", params.Key.userId, self.userId);
@@ -454,20 +446,20 @@ module.exports = {
 							callback(null, {});
 						};
 					}
-					
+
 					handler(request, ctx, callback, true);
-					
+
 					ctx.Promise
 						.then(response => {
 							//TODO: null checks
-							
+
 							if (response.toJSON) {
 								response = response.toJSON();
 							}
-							
+
 							var actualSay = response.response.outputSpeech ? response.response.outputSpeech.ssml : undefined;
 							var actualReprompt = response.response.reprompt ? response.response.reprompt.outputSpeech.ssml : undefined;
-							
+
 							// check the returned speech
 							if (currentItem.says !== undefined) {
 								let expected = "<speak> " + currentItem.says + " </speak>";
@@ -489,26 +481,26 @@ module.exports = {
 							if (currentItem.repromptsNothing) {
 								self._assertStringMissing(context, "reprompt", actualReprompt);
 							}
-							
+
 							if (currentItem.elicitsSlot) {
 								let elicitSlotDirective = self._getDirectiveFromResponse(response, 'Dialog.ElicitSlot');
 								let slot = elicitSlotDirective ? elicitSlotDirective.slotToElicit : '';
 								self._assertStringEqual(context, "elicitSlot", slot, currentItem.elicitsSlot);
 							}
-							
+
 							if (currentItem.confirmsSlot) {
 								let confirmSlotDirective = self._getDirectiveFromResponse(response, 'Dialog.ConfirmSlot');
 								let slot = confirmSlotDirective ? confirmSlotDirective.slotToConfirm : '';
 								self._assertStringEqual(context, "confirmSlot", slot, currentItem.confirmsSlot);
 							}
-							
+
 							if (currentItem.confirmsIntent) {
 								let confirmSlotDirective = self._getDirectiveFromResponse(response, 'Dialog.ConfirmIntent');
 								if (!confirmSlotDirective) {
 									context.assert({message: "the response did not ask Alexa to confirm the intent"});
 								}
 							}
-							
+
 							if (currentItem.hasAttributes) {
 								for (let att in currentItem.hasAttributes) {
 									if (currentItem.hasAttributes.hasOwnProperty(att)) {
@@ -516,7 +508,7 @@ module.exports = {
 									}
 								}
 							}
-							
+
 							if (currentItem.hasCardTitle) {
 								if (!response.response.card) {
 									context.assert({message: "the response did not contain a card"});
@@ -524,7 +516,7 @@ module.exports = {
 									self._assertStringEqual(context, "cardTitle", response.response.card.title, currentItem.hasCardTitle);
 								}
 							}
-							
+
 							if (currentItem.hasCardContent) {
 								if (!response.response.card) {
 									context.assert({message: "the response did not contain a card"});
@@ -532,7 +524,7 @@ module.exports = {
 									self._assertStringEqual(context, "cardContent", response.response.card.content, currentItem.hasCardContent);
 								}
 							}
-							
+
 							// check the shouldEndSession flag
 							if (currentItem.shouldEndSession === true && !response.response.shouldEndSession) {
 								context.assert(
@@ -550,9 +542,9 @@ module.exports = {
 										actual: "the response ended the session"
 									});
 							}
-							
+
 							checkAudioPlayer(self, context, response, currentItem);
-							
+
 							// custom checks
 							if (currentItem.saysCallback) {
 								currentItem.saysCallback(context, actualSay);
@@ -560,12 +552,12 @@ module.exports = {
 							if (currentItem.callback) {
 								currentItem.callback(context, response);
 							}
-							
+
 							// extra checks
 							if (self.extraFeatures.questionMarkCheck) {
 								context._questionMarkCheck(response);
 							}
-							
+
 							run(handler, sequenceIndex + 1, response.sessionAttributes);
 						})
 						.catch(done);
@@ -574,7 +566,7 @@ module.exports = {
 			run(index.handler, 0, {});
 		});
 	},
-	
+
 	/**
 	 * Formats text via i18n.
 	 */
@@ -585,7 +577,7 @@ module.exports = {
 		}
 		return this.i18n.t.apply(this.i18n, arguments);
 	},
-	
+
 	/**
 	 * Internal method. Asserts if the strings are not equal.
 	 */
@@ -600,7 +592,7 @@ module.exports = {
 				});
 		}
 	},
-	
+
 	/**
 	 * Internal method. Asserts if the strings are not equal.
 	 */
@@ -615,7 +607,7 @@ module.exports = {
 				});
 		}
 	},
-	
+
 	/**
 	 * Internal method. Asserts if the string exists.
 	 */
@@ -630,7 +622,7 @@ module.exports = {
 				});
 		}
 	},
-	
+
 	/**
 	 * Internal method.
 	 */
@@ -641,14 +633,14 @@ module.exports = {
 			message += ": " + data.message;
 		}
 		data.message = message;
-		
+
 		// the message has information that should be displayed by the test runner
 		data.generatedMessage = false;
-		
+
 		data.name = "AssertionError";
 		throw new AssertionError(message, data);
 	},
-	
+
 	/**
 	 * Internal method.
 	 */
@@ -663,7 +655,7 @@ module.exports = {
 			"new": true
 		};
 	},
-	
+
 	/**
 	 * Internal method.
 	 */
@@ -686,7 +678,7 @@ module.exports = {
 			}
 		};
 	},
-	
+
 	/**
 	 * Internal method.
 	 */
@@ -706,23 +698,23 @@ module.exports = {
 
 const checkAudioPlayer = (self, context, response, currentItem) => {
 	'use strict';
-	
+
 	if (currentItem.playsStream) {
 		let playDirective = self._getDirectiveFromResponse(response, 'AudioPlayer.Play');
 		if (!playDirective) {
 			context.assert({message: "the response did not play a stream"});
 			return;
 		}
-		
+
 		let playConfig = currentItem.playsStream;
 		self._assertStringEqual(context, "playBehavior", playDirective.playBehavior, playConfig.behavior);
-		
+
 		let stream = playDirective.audioItem.stream;
 		if (!stream.url.startsWith('https://')) {
 			context.assert({message: "the stream URL is not https"});
 		}
 		self._assertStringEqual(context, "url", stream.url, playConfig.url);
-		
+
 		if (playConfig.token) {
 			self._assertStringEqual(context, "token", stream.token, playConfig.token);
 		}
@@ -733,14 +725,14 @@ const checkAudioPlayer = (self, context, response, currentItem) => {
 			self._assertStringEqual(context, "offsetInMilliseconds", stream.offsetInMilliseconds.toString(), playConfig.offset.toString());
 		}
 	}
-	
+
 	if (currentItem.stopsStream) {
 		if (!self._getDirectiveFromResponse(response, 'AudioPlayer.Stop')) {
 			context.assert({message: "the response did not stop the stream"});
 			return;
 		}
 	}
-	
+
 	if (currentItem.clearsQueue) {
 		let clearDirective = self._getDirectiveFromResponse(response, 'AudioPlayer.ClearQueue');
 		if (!clearDirective) {
